@@ -3,7 +3,7 @@ local gears = require("gears")
 local awful = require("awful")
 
 -- Text widget
-kr0mBatteryPercentageData = wibox.widget.textbox()
+kr0mBatteryData = wibox.widget.textbox()
 
 -- Battery icon widget
 kr0mBatteryIcon = wibox.widget.imagebox()
@@ -72,7 +72,7 @@ local function update_battery_widget()
     local profile = get_power_profile()
     local level = get_battery_level(percentage)
 
-    kr0mBatteryPercentageData:set_text(percentage .. "%")
+    kr0mBatteryData:set_text(percentage .. "%")
 
     -- Blink if battery is critical and discharging
     if percentage < 15 and status:lower() == "discharging" then

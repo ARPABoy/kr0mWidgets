@@ -21,7 +21,7 @@ require("kr0mWidgets.ramUsage")
 Use widgets wherever you desire:
         { -- Right widgets
             kr0mBatteryIcon,
-            kr0mBatteryPercentageData,
+            kr0mBatteryData,
             kr0mCpuIcon,
             kr0mCpuData,
             kr0mRamIcon,

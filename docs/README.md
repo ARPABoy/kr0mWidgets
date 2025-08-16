@@ -18,13 +18,10 @@ CPU,RAM,Battery widgets provides icon and text information. Battery one is littl
 
 Lighting symbol indicates AC is pluged-in, blinking warning icon indicates battery is <= 10%.
 
-|              Power-saver             |            Balanced              |               Performance              |
-|:------------------------------------:|:--------------------------------:|:--------------------------------------:|
-| ![Powersaver](images/powersaver.png) | ![Balanced](images/balanced.png) | ![Performance](images/performance.png) |
-
-|               Power-saver-AC               |             Balanced-AC                |                Performance-AC                |
-|:------------------------------------------:|:--------------------------------------:|:--------------------------------------------:|
-| ![Powersaver-ac](images/powersaver-ac.png) | ![Balanced-ac](images/balanced-ac.png) | ![Performance-ac](images/performance-ac.png) |
+| Energy |                 Power-saver                |                Balanced                |                  Performance                 |
+|:------:|:------------------------------------------:|:--------------------------------------:|:--------------------------------------------:|
+|Battery | ![Powersaver](images/powersaver.png)       | ![Balanced](images/balanced.png)       | ![Performance](images/performance.png)       |
+|   AC   | ![Powersaver-ac](images/powersaver-ac.png) | ![Balanced-ac](images/balanced-ac.png) | ![Performance-ac](images/performance-ac.png) |
 
 Critical battery threshhold:
 ![critical-battery](images/critical-baterry.png)

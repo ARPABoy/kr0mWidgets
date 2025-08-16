@@ -36,7 +36,7 @@ cd ~/.config/awesome
 git clone https://github.com/ARPABoy/kr0mWidgets.git
 ```
 
-### Use:
+### Usage:
 
 ```bash
 vi ~/.config/awesome/rc.lua

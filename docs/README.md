@@ -21,7 +21,7 @@ Battery widget is a little special, as information is coded in the icon color sc
 - Battery indicator mustard: Balanced profile applied.
 - Battery indicator red: Performance profile applied.
 
-Lighting symbol indicates AC is pluged-in, blinking warning icon indicates battery is <= 10%.
+Lighting symbol indicates AC is pluged-in, blinking warning icon indicates battery is <= 5%.
 
 | Energy |                 Power-saver                |                Balanced                |                  Performance                 |
 |:------:|:------------------------------------------:|:--------------------------------------:|:--------------------------------------------:|

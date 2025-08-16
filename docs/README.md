@@ -2,13 +2,6 @@
 
 Custom awesomeWM widgets.
 
-### Installation:
-
-```bash
-cd ~/.config/awesome
-git clone https://github.com/ARPABoy/kr0mWidgets.git
-```
-
 ### Features:
 
 CPU,RAM,Battery widgets provides icon and text information.
@@ -30,6 +23,13 @@ Lighting symbol indicates AC is pluged-in, blinking warning icon indicates batte
 
 Critical battery threshhold:
 ![critical-battery](images/critical-battery.png)
+
+### Installation:
+
+```bash
+cd ~/.config/awesome
+git clone https://github.com/ARPABoy/kr0mWidgets.git
+```
 
 ### Use:
 

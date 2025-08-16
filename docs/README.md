@@ -11,7 +11,12 @@ git clone https://github.com/ARPABoy/kr0mWidgets.git
 
 ### Features:
 
-CPU,RAM,Battery widgets provides icon and text information. Battery one is little special as information is coded in an icon color schema:
+CPU,RAM,Battery widgets provides icon and text information.
+|           CPU          |         RAM            |
+|:----------------------:|:----------------------:|
+| ![CPU](images/cpu.png) | ![RAM](images/ram.png) |
+
+Battery one is little special as information is coded in an icon color schema:
 - Battery indicator green: Power-saver profile applied.
 - Battery indicator mustard: Balanced profile applied.
 - Battery indicator red: Performance profile applied.

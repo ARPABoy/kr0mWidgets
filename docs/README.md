@@ -1,6 +1,6 @@
 ## kr0mWidgets:
 
-Custom awesomeWM widgets vy kr0m([AlfaExploit](https://alfaexploit.com)).
+Custom awesomeWM widgets by kr0m([AlfaExploit](https://alfaexploit.com)).
 
 ## Dependencies:
 ```bash

@@ -1,6 +1,11 @@
 ## kr0mWidgets:
 
-Custom awesomeWM widgets.
+Custom awesomeWM widgets vy kr0m([AlfaExploit](https://alfaexploit.com)).
+
+## Dependencies:
+```bash
+apt install upower power-profiles-daemon
+```
 
 ### Features:
 

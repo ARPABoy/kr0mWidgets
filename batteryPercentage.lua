@@ -75,7 +75,7 @@ local function update_battery_widget()
     kr0mBatteryData:set_text(percentage .. "%")
 
     -- Blink if battery is critical and discharging
-    if percentage < 10 and status:lower() == "discharging" then
+    if percentage < 5 and status:lower() == "discharging" then
         if blink_state then
             kr0mBatteryIcon:set_image(get_icon_name(level, status, profile))
         else

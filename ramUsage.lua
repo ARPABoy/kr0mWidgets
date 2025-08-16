@@ -5,7 +5,7 @@ local awful = require("awful")
 local home = os.getenv("HOME")
 
 -- Create RAM icon widget (global for rc.lua)
-kr0mRamIcon = wibox.widget.imagebox(home .. "/.config/awesome/kr0mWidgets/media_files/mem.png")
+kr0mRamIcon = wibox.widget.imagebox(home .. "/.config/awesome/kr0mWidgets/media_files/ram.png")
 
 -- Create RAM usage text widget (global for rc.lua)
 kr0mRamData = wibox.widget.textbox()

@@ -29,7 +29,7 @@ Lighting symbol indicates AC is pluged-in, blinking warning icon indicates batte
 |   AC   | ![Powersaver-ac](images/powersaver-ac.png) | ![Balanced-ac](images/balanced-ac.png) | ![Performance-ac](images/performance-ac.png) |
 
 Critical battery threshhold:
-![critical-battery](images/critical-baterry.png)
+![critical-battery](images/critical-battery.png)
 
 ### Use:
 

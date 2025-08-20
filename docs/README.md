@@ -10,9 +10,14 @@ apt install upower power-profiles-daemon lm-sensors
 ### Features:
 
 CPU, RAM, battery, cpu temp. widgets provides icon and text information.
-|           CPU          |         RAM            |            CPU Temp             |
-|:----------------------:|:----------------------:|:-------------------------------:|
-| ![CPU](images/cpu.png) | ![RAM](images/ram.png) | ![CPU Temp](images/cpuTemp.png) |
+|           CPU          |         RAM            |
+|:----------------------:|:----------------------:|
+| ![CPU](images/cpu.png) | ![RAM](images/ram.png) |
+
+Cpu temp widget will change the icon color and thermometer bar depending on temperature, finally showing a flame if critical threshold is exceeded.
+|           Cold          |           Warm           |           Hot          |          Fire            |
+|:-----------------------:|:------------------------:|:----------------------:|:------------------------:|
+|![Cold](images/cold.png) | ![Warm](images/warm.png) | ![Hot](images/hot.png) | ![Fire](images/fire.png) |
 
 Battery widget is a little special, as information is coded in the icon color schema:
 - Battery indicator green: Power-saver profile applied.

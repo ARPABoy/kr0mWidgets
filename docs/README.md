@@ -14,7 +14,7 @@ CPU, RAM, battery, cpu temp. widgets provides icon and text information.
 |:----------------------:|:----------------------:|
 | ![CPU](images/cpu.png) | ![RAM](images/ram.png) |
 
-Cpu temp widget will change the icon color and thermometer bar depending on temperature, finally showing a flame if critical threshold is exceeded.
+Cpu temp widget will change the icon color and thermometer bar depending on temperature, finally blinking a flame if critical threshold is exceeded.
 |           Cold          |           Warm           |           Hot          |          Fire            |
 |:-----------------------:|:------------------------:|:----------------------:|:------------------------:|
 |![Cold](images/cold.png) | ![Warm](images/warm.png) | ![Hot](images/hot.png) | ![Fire](images/fire.png) |

@@ -21,24 +21,53 @@ local function get_cpu_temp()
     return temp
 end
 
--- Function to choose icon based on temperature
-local function get_icon_name(temp)
-    if temp < 55 then
-        return icon_base_path .. "blue.png"
-    elseif temp < 75 then
-        return icon_base_path .. "orange.png"
-    elseif temp < 90 then
-        return icon_base_path .. "red.png"
-    else
-        return icon_base_path .. "burning.png"
+-- Icons
+local blue_icon    = icon_base_path .. "blue.png"
+local orange_icon  = icon_base_path .. "orange.png"
+local red_icon     = icon_base_path .. "red.png"
+local burning_icon = icon_base_path .. "burning.png"
+
+-- State for blinking
+local blink_state = false
+
+-- Timer for blinking
+local blink_timer = gears.timer({
+    timeout   = 0.5,
+    autostart = false,
+    call_now  = false,
+    single_shot = false,
+    callback = function()
+        blink_state = not blink_state
+        if blink_state then
+            kr0mCpuTempIcon:set_image(red_icon)
+        else
+            kr0mCpuTempIcon:set_image(burning_icon)
+        end
     end
-end
+})
 
 -- Function to update the widget
 local function update_cpu_temp_widget()
     local temp = get_cpu_temp()
     kr0mCpuTempData:set_text(temp .. "°C")
-    kr0mCpuTempIcon:set_image(get_icon_name(temp))
+
+    if temp >= 90 then
+        if not blink_timer.started then
+            blink_timer:start()
+        end
+    else
+        if blink_timer.started then
+            blink_timer:stop()
+        end
+
+        if temp < 55 then
+            kr0mCpuTempIcon:set_image(blue_icon)
+        elseif temp < 75 then
+            kr0mCpuTempIcon:set_image(orange_icon)
+        elseif temp < 90 then
+            kr0mCpuTempIcon:set_image(red_icon)
+        end
+    end
 end
 
 -- Timer to update every 5s

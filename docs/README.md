@@ -43,6 +43,7 @@ vi ~/.config/awesome/rc.lua
 ```
 ```lua
 require("kr0mWidgets.batteryPercentage")
+require("kr0mWidgets.cpuTemp")
 require("kr0mWidgets.cpuUsage")
 require("kr0mWidgets.ramUsage")
 
@@ -51,6 +52,8 @@ Use widgets wherever you desire:
         { -- Right widgets
             kr0mBatteryIcon,
             kr0mBatteryData,
+            kr0mCpuTempIcon,
+            kr0mCpuTempData,
             kr0mCpuIcon,
             kr0mCpuData,
             kr0mRamIcon,

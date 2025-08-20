@@ -4,15 +4,15 @@ Custom awesomeWM widgets by kr0m([AlfaExploit](https://alfaexploit.com)).
 
 ### Dependencies:
 ```bash
-apt install upower power-profiles-daemon
+apt install upower power-profiles-daemon lm-sensors
 ```
 
 ### Features:
 
-CPU,RAM,Battery widgets provides icon and text information.
-|           CPU          |         RAM            |
-|:----------------------:|:----------------------:|
-| ![CPU](images/cpu.png) | ![RAM](images/ram.png) |
+CPU, RAM, battery, cpu temp. widgets provides icon and text information.
+|           CPU          |         RAM            |            CPU Temp             |
+|:----------------------:|:----------------------:|:-------------------------------:|
+| ![CPU](images/cpu.png) | ![RAM](images/ram.png) | ![CPU Temp](images/cpuTemp.png) |
 
 Battery widget is a little special, as information is coded in the icon color schema:
 - Battery indicator green: Power-saver profile applied.

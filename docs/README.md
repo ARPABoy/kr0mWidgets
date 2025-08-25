@@ -37,6 +37,8 @@ Lighting symbol indicates AC is pluged-in, blinking warning icon indicates batte
 Critical battery threshhold:
 ![critical-battery](images/critical-battery.png)
 
+For calendar functionality it's required a calendar server setup as [described here.](https://alfaexploit.com/calendar_server)
+
 Calendar events display an icon that when clicked will display next 30d pending events, if some event happens the current day, tomorrow, this week, this month, icon text will change:
 |                                            |                                              |                                                    |                                            |                                              |
 | :----------------------------------------: | :------------------------------------------: | :------------------------------------------------: | :----------------------------------------: | :------------------------------------------: |

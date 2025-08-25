@@ -4,7 +4,7 @@ Custom awesomeWM widgets by kr0m([AlfaExploit](https://alfaexploit.com)).
 
 ### Dependencies:
 ```bash
-apt install upower power-profiles-daemon lm-sensors
+apt install upower power-profiles-daemon lm-sensors khal vdirsyncer
 ```
 
 ### Features:
@@ -37,6 +37,11 @@ Lighting symbol indicates AC is pluged-in, blinking warning icon indicates batte
 Critical battery threshhold:
 ![critical-battery](images/critical-battery.png)
 
+Calendar events display an icon that when clicked will display next 30d pending events, if some event happens the current day, icon colors will change:
+|                         |                        |
+| :---------------------: | :--------------------: |
+| (images/calendar00.png) | (images/calendar01png) |
+
 ### Installation:
 
 ```bash
@@ -54,6 +59,7 @@ require("kr0mWidgets.batteryPercentage")
 require("kr0mWidgets.cpuTemp")
 require("kr0mWidgets.cpuUsage")
 require("kr0mWidgets.ramUsage")
+require("kr0mWidgets.calendar")
 
 
 Use widgets wherever you desire:
@@ -66,5 +72,6 @@ Use widgets wherever you desire:
             kr0mCpuData,
             kr0mRamIcon,
             kr0mRamData,
+            kr0mCalendarIcon,
         },
 ```

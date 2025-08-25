@@ -37,10 +37,10 @@ Lighting symbol indicates AC is pluged-in, blinking warning icon indicates batte
 Critical battery threshhold:
 ![critical-battery](images/critical-battery.png)
 
-Calendar events display an icon that when clicked will display next 30d pending events, if some event happens the current day, icon colors will change:
-|                                    |                                     |                                     |
-| :--------------------------------: | :---------------------------------: | :---------------------------------: |
-| ![calendar](images/calendar00.png) | ![calendar2](images/calendar01.png) | ![calendar3](images/calendar02.png) |
+Calendar events display an icon that when clicked will display next 30d pending events, if some event happens the current day, tomorrow, this week, this month, icon text will change:
+|                                            |                                              |                                                    |                                            |                                              |
+| :----------------------------------------: | :------------------------------------------: | :------------------------------------------------: | :----------------------------------------: | :------------------------------------------: |
+| ![calendar-none](images/calendar-none.png) | ![calendar-today](images/calendar-today.png) | ![calendar-tomorrow](images/calendar-tomorrow.png) | ![calendar-week](images/calendar-week.png) | ![calendar-month](images/calendar-month.png) |
 
 ### Installation:
 

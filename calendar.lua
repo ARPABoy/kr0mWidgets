@@ -7,22 +7,28 @@ local naughty = require("naughty")
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendar/"
 
 -- Calendar icon widget
-kr0mCalendarIcon = wibox.widget.imagebox(icon_base_path .. "calendar.png")
+kr0mCalendarIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
--- Function to check if there are events today
-local function has_events_today()
-    local handle = io.popen("khal list today today")
+-- Generic function to check if there are events in a date range
+local function has_events(range)
+    local handle = io.popen("khal list " .. range)
     local output = handle:read("*a")
     handle:close()
     return output ~= nil and output:match("%S") ~= nil
 end
 
--- Function to update the icon depending on today's events
+-- Function to update the icon depending on events
 local function update_calendar_icon()
-    if has_events_today() then
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-dot.png")
+    if has_events("today today") then
+        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-today.png")
+    elseif has_events("tomorrow tomorrow") then
+        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-tomorrow.png")
+    elseif has_events("today 7d") then
+        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-week.png")
+    elseif has_events("today 30d") then
+        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-month.png")
     else
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar.png")
+        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-none.png")
     end
 end
 
@@ -42,7 +48,7 @@ kr0mCalendarIcon:buttons(
 )
 
 -- Timer to refresh the icon every 30s
-local calendar_timer = gears.timer({ timeout = 30 })
+local calendar_timer = gears.timer({ timeout = 5 })
 calendar_timer:connect_signal("timeout", update_calendar_icon)
 calendar_timer:start()
 

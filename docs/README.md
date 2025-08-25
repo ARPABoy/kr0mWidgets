@@ -42,6 +42,10 @@ Calendar events display an icon that when clicked will display next 30d pending 
 | :----------------------------------------: | :------------------------------------------: | :------------------------------------------------: | :----------------------------------------: | :------------------------------------------: |
 | ![calendar-none](images/calendar-none.png) | ![calendar-today](images/calendar-today.png) | ![calendar-tomorrow](images/calendar-tomorrow.png) | ![calendar-week](images/calendar-week.png) | ![calendar-month](images/calendar-month.png) |
 
+The events list looks like this:
+![calendar-list](images/calendar-list.png)
+
+
 ### Installation:
 
 ```bash

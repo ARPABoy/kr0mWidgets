@@ -7,7 +7,7 @@ Custom awesomeWM widgets by kr0m([AlfaExploit](https://alfaexploit.com)).
 apt install upower power-profiles-daemon lm-sensors khal vdirsyncer
 ```
 
-For calendar functionality it's required a calendar server setup as [described here.](https://alfaexploit.com/calendar_server)
+For calendar functionality it's required a calendar server setup as [described here.](https://alfaexploit.com/en/posts/calendar_server)
 
 ### Features:
 

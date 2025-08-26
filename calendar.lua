@@ -47,8 +47,8 @@ kr0mCalendarIcon:buttons(
     )
 )
 
--- Timer to refresh the icon every 30s
-local calendar_timer = gears.timer({ timeout = 5 })
+-- Timer to refresh the icon every 60s
+local calendar_timer = gears.timer({ timeout = 60 })
 calendar_timer:connect_signal("timeout", update_calendar_icon)
 calendar_timer:start()
 

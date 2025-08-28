@@ -65,7 +65,7 @@ require("kr0mWidgets.batteryPercentage")
 require("kr0mWidgets.cpuTemp")
 require("kr0mWidgets.cpuUsage")
 require("kr0mWidgets.ramUsage")
-require("kr0mWidgets.calendar")
+require("kr0mWidgets.calendarEvents")
 
 
 Use widgets wherever you desire:
@@ -78,6 +78,6 @@ Use widgets wherever you desire:
             kr0mCpuData,
             kr0mRamIcon,
             kr0mRamData,
-            kr0mCalendarIcon,
+            kr0mCalendarEventsIcon,
         },
 ```

@@ -7,7 +7,7 @@ local naughty = require("naughty")
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendar/"
 
 -- Calendar icon widget
-kr0mCalendarIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
+kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
 -- Generic function to check if there are events in a date range
 local function has_events(range)
@@ -20,20 +20,20 @@ end
 -- Function to update the icon depending on events
 local function update_calendar_icon()
     if has_events("today today") then
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-today.png")
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-today.png")
     elseif has_events("tomorrow tomorrow") then
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-tomorrow.png")
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-tomorrow.png")
     elseif has_events("today 7d") then
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-week.png")
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-week.png")
     elseif has_events("today 30d") then
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-month.png")
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-month.png")
     else
-        kr0mCalendarIcon:set_image(icon_base_path .. "calendar-none.png")
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-none.png")
     end
 end
 
 -- Left click on the icon → show upcoming events for the next 30 days
-kr0mCalendarIcon:buttons(
+kr0mCalendarEventsIcon:buttons(
     gears.table.join(
         awful.button({}, 1, function()
             awful.spawn.easy_async_with_shell("khal list today 30d", function(stdout)

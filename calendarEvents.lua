@@ -4,7 +4,7 @@ local awful = require("awful")
 local naughty = require("naughty")
 
 -- Base path for your icons
-local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendar/"
+local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 
 -- Calendar icon widget
 kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")

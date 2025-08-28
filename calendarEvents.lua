@@ -1,23 +1,18 @@
 local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
-local naughty = require("naughty")
 
--- Base path for your icons
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 
--- Calendar icon widget
 kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
--- Generic function to check if there are events in a date range
 local function has_events(range)
-    local handle = io.popen("khal list " .. range)
+    local handle = io.popen("khal list " .. range .. " 2>/dev/null")
     local output = handle:read("*a")
     handle:close()
-    return output ~= nil and output:match("%S") ~= nil
+    return output ~= nil and output:match("%S") ~= nil and not output:match("No events")
 end
 
--- Function to update the icon depending on events
 local function update_calendar_icon()
     if has_events("today today") then
         kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-today.png")
@@ -32,14 +27,11 @@ local function update_calendar_icon()
     end
 end
 
--- Popup to display events
 local calendar_popup = awful.popup {
     widget = {
         {
             id = "event_list",
-            widget = wibox.widget.textbox,
-            text = "Loading events...",
-            align = "left",
+            layout = wibox.layout.fixed.vertical,
         },
         margins = 8,
         widget = wibox.container.margin,
@@ -48,22 +40,74 @@ local calendar_popup = awful.popup {
     border_width = 1,
     ontop = true,
     visible = false,
-    placement = awful.placement.top_right,
     shape = gears.shape.rounded_rect,
+    maximum_width = 400,
+    maximum_height = 300,
 }
 
--- Helper to update popup content
 local function update_calendar_popup()
-    awful.spawn.easy_async_with_shell("khal list today 30d", function(stdout)
-        if stdout == "" then
-            calendar_popup.widget:get_children_by_id("event_list")[1].text = "No upcoming events."
-        else
-            calendar_popup.widget:get_children_by_id("event_list")[1].text = stdout
+    awful.spawn.easy_async_with_shell("LC_TIME=en_US.UTF-8 khal list today 30d", function(stdout)
+        local event_list = calendar_popup.widget:get_children_by_id("event_list")[1]
+        event_list:reset()
+
+        if stdout == "" or stdout:match("^%s*$") then
+            event_list:add(wibox.widget.textbox("No upcoming events."))
+            return
+        end
+
+        local current_day = nil
+        local day_events = {}
+        local first_day = true
+
+        for line in stdout:gmatch("[^\r\n]+") do
+            if line:match("^%s*$") then
+                goto continue
+            end
+            
+            if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
+                if current_day then
+                    if not first_day then
+                        event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
+                    end
+                    
+                    local tb_day = wibox.widget.textbox(current_day)
+                    tb_day.font = "Sans Bold 11"
+                    event_list:add(tb_day)
+                    
+                    for _, ev in ipairs(day_events) do
+                        event_list:add(wibox.widget.textbox("  " .. ev))
+                    end
+                    
+                    first_day = false
+                    day_events = {}
+                end
+                current_day = line
+            else
+                local cleaned_event = line:match("^%s*(.+)$")
+                if cleaned_event and cleaned_event ~= "" then
+                    table.insert(day_events, cleaned_event)
+                end
+            end
+            
+            ::continue::
+        end
+
+        if current_day then
+            if not first_day then
+                event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
+            end
+            
+            local tb_day = wibox.widget.textbox(current_day)
+            tb_day.font = "Sans Bold 11"
+            event_list:add(tb_day)
+            
+            for _, ev in ipairs(day_events) do
+                event_list:add(wibox.widget.textbox("  " .. ev))
+            end
         end
     end)
 end
 
--- Left click on the icon → toggle popup
 kr0mCalendarEventsIcon:buttons(
     gears.table.join(
         awful.button({}, 1, function()
@@ -71,17 +115,14 @@ kr0mCalendarEventsIcon:buttons(
                 calendar_popup.visible = false
             else
                 update_calendar_popup()
+                awful.placement.top_right(calendar_popup, { margins = { top = 40, right = 10 } })
                 calendar_popup.visible = true
             end
         end)
     )
 )
 
--- Timer to refresh the icon every 60s
 local calendar_timer = gears.timer({ timeout = 60 })
 calendar_timer:connect_signal("timeout", update_calendar_icon)
 calendar_timer:start()
-
--- Initial update call
 update_calendar_icon()
-

@@ -1,6 +1,7 @@
 local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
+local naughty = require("naughty")
 
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 
@@ -108,17 +109,28 @@ local function update_calendar_popup()
     end)
 end
 
+local first_popup_show = true
+
+local function toggle_calendar_popup()
+    if calendar_popup.visible then
+        calendar_popup.visible = false
+    else
+        update_calendar_popup()
+        gears.timer.delayed_call(function()
+            if first_popup_show then
+                awful.placement.top_right(calendar_popup, { parent = mouse.screen, margins = { top = 40, right = 408 } })
+                first_popup_show = false
+            else
+                awful.placement.top_right(calendar_popup, { parent = mouse.screen, margins = { top = 40, right = 8 } })
+            end
+            calendar_popup.visible = true
+        end)
+    end
+end
+
 kr0mCalendarEventsIcon:buttons(
     gears.table.join(
-        awful.button({}, 1, function()
-            if calendar_popup.visible then
-                calendar_popup.visible = false
-            else
-                update_calendar_popup()
-                awful.placement.top_right(calendar_popup, { margins = { top = 40, right = 10 } })
-                calendar_popup.visible = true
-            end
-        end)
+        awful.button({}, 1, toggle_calendar_popup)
     )
 )
 
@@ -126,3 +138,4 @@ local calendar_timer = gears.timer({ timeout = 60 })
 calendar_timer:connect_signal("timeout", update_calendar_icon)
 calendar_timer:start()
 update_calendar_icon()
+

@@ -32,17 +32,47 @@ local function update_calendar_icon()
     end
 end
 
--- Left click on the icon → show upcoming events for the next 30 days
+-- Popup to display events
+local calendar_popup = awful.popup {
+    widget = {
+        {
+            id = "event_list",
+            widget = wibox.widget.textbox,
+            text = "Loading events...",
+            align = "left",
+        },
+        margins = 8,
+        widget = wibox.container.margin,
+    },
+    border_color = "#666666",
+    border_width = 1,
+    ontop = true,
+    visible = false,
+    placement = awful.placement.top_right,
+    shape = gears.shape.rounded_rect,
+}
+
+-- Helper to update popup content
+local function update_calendar_popup()
+    awful.spawn.easy_async_with_shell("khal list today 30d", function(stdout)
+        if stdout == "" then
+            calendar_popup.widget:get_children_by_id("event_list")[1].text = "No upcoming events."
+        else
+            calendar_popup.widget:get_children_by_id("event_list")[1].text = stdout
+        end
+    end)
+end
+
+-- Left click on the icon → toggle popup
 kr0mCalendarEventsIcon:buttons(
     gears.table.join(
         awful.button({}, 1, function()
-            awful.spawn.easy_async_with_shell("khal list today 30d", function(stdout)
-                if stdout == "" then
-                    naughty.notify({ title = "Calendar", text = "No upcoming events.", timeout = 5 })
-                else
-                    naughty.notify({ title = "Upcoming Events", text = stdout, timeout = 10 })
-                end
-            end)
+            if calendar_popup.visible then
+                calendar_popup.visible = false
+            else
+                update_calendar_popup()
+                calendar_popup.visible = true
+            end
         end)
     )
 )

@@ -34,13 +34,14 @@ local scroll_margin = wibox.container.margin(event_list, 0, 0, 0, 0)
 local scroll_container = wibox.widget {
     scroll_margin,
     forced_width = 380,
-    forced_height = 300,
     clip = true,
     widget = wibox.container.background,
 }
+
 local scroll_offset = 0
 local scroll_step = 40
-local visible_height = 300
+local visible_height_max = 300
+local popup_margin = 8 -- mismo que margins del popup
 
 local function get_total_height()
     local height = 0
@@ -56,15 +57,23 @@ local function get_total_height()
     return height
 end
 
--- Mouse wheel scroll
+local function update_scroll_container_height()
+    local total_height = get_total_height()
+    scroll_container.height = math.min(total_height, visible_height_max)
+end
+
+-- Mouse wheel scroll solo si hace falta y con margen para el último evento
 scroll_container:buttons(gears.table.join(
     awful.button({}, 4, function()
+        local total_height = get_total_height()
+        if total_height <= scroll_container.height then return end
         scroll_offset = math.max(0, scroll_offset - scroll_step)
         scroll_margin.top = -scroll_offset
     end),
     awful.button({}, 5, function()
         local total_height = get_total_height()
-        local max_offset = math.max(0, total_height - visible_height + 30)
+        if total_height <= scroll_container.height then return end
+        local max_offset = math.max(0, total_height - scroll_container.height + popup_margin)
         scroll_offset = math.min(max_offset, scroll_offset + scroll_step)
         scroll_margin.top = -scroll_offset
     end)
@@ -74,7 +83,7 @@ scroll_container:buttons(gears.table.join(
 local calendar_popup = awful.popup {
     widget = {
         scroll_container,
-        margins = 8,
+        margins = popup_margin,
         widget = wibox.container.margin
     },
     border_color = "#666666",
@@ -92,8 +101,10 @@ local function update_calendar_popup()
         event_list:reset()
         scroll_offset = 0
         scroll_margin.top = 0
+
         if stdout == "" or stdout:match("^%s*$") then
             event_list:add(wibox.widget.textbox("No upcoming events."))
+            update_scroll_container_height()
             return
         end
 
@@ -106,7 +117,6 @@ local function update_calendar_popup()
             if line:match("^%s*$") then goto continue end
 
             if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
-                -- New day
                 if current_day then
                     if not first_day then
                         event_list:add(wibox.widget {
@@ -140,7 +150,6 @@ local function update_calendar_popup()
                             if desc and desc ~= "" then
                                 for desc_line in desc:gmatch("[^\r\n]+") do
                                     local line_widget = wibox.widget.textbox("    - " .. desc_line)
-                                    -- Detectar URL
                                     local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
                                     if url then
                                         line_widget.markup = "    - <u><span foreground='#00afff'>" .. desc_line .. "</span></u>"
@@ -176,7 +185,7 @@ local function update_calendar_popup()
                             table.insert(current_event, line_widget)
                         end
                     else
-                        table.insert(day_events, { wibox.widget.textbox("  " .. cleaned_line) })
+                        table.insert(day_events, { wibox.widget.textbox(cleaned_line) })
                     end
                 end
             end
@@ -201,6 +210,9 @@ local function update_calendar_popup()
                 end
             end
         end
+
+        -- Ajustar altura dinámica
+        update_scroll_container_height()
     end)
 end
 

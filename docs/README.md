@@ -44,7 +44,7 @@ Calendar events display an icon that when clicked will display next 30d pending 
 | :----------------------------------------: | :------------------------------------------: | :------------------------------------------------: | :----------------------------------------: | :------------------------------------------: |
 | ![calendar-none](images/calendar-none.png) | ![calendar-today](images/calendar-today.png) | ![calendar-tomorrow](images/calendar-tomorrow.png) | ![calendar-week](images/calendar-week.png) | ![calendar-month](images/calendar-month.png) |
 
-The events list looks like this:
+Event list is scrollable and if some event have a description it will appear each description line under the event name, furthermore if a link is detected, it will be clickable.
 ![calendar-list](images/calendar-list.png)
 
 

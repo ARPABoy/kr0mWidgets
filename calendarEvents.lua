@@ -94,18 +94,20 @@ local calendar_popup = awful.popup {
     maximum_height = 300,
 }
 
--- Función simplificada y corregida para mostrar días restantes
+-- Función corregida para mostrar días restantes y día de la semana
 local function format_day_with_diff(day_str)
-    local d, m, y = day_str:match("(%d%d)/(%d%d)/(%d%d%d%d)")
-    if not d then return day_str end
+    -- Extraemos solo la fecha DD/MM/YYYY
+    local date_only = day_str:match("(%d%d/%d%d/%d%d%d%d)")
+    if not date_only then return day_str end
 
-    -- Fecha del evento a medianoche
+    local d, m, y = date_only:match("(%d%d)/(%d%d)/(%d%d%d%d)")
     local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d), hour=0, min=0, sec=0})
-    -- Fecha actual a medianoche
     local now_date = os.date("*t")
     local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0, min=0, sec=0})
 
     local diff_days = math.floor((event_time - today_time) / (24*60*60))
+
+    local weekday_name = os.date("%A", event_time)
 
     local suffix = ""
     local color = "#ffffff"
@@ -121,7 +123,7 @@ local function format_day_with_diff(day_str)
         color = "#ffaa00"
     end
 
-    return "<span foreground='" .. color .. "'>" .. day_str .. suffix .. "</span>"
+    return "<span foreground='" .. color .. "'>" .. weekday_name .. " " .. date_only .. suffix .. "</span>"
 end
 
 -- Update popup content

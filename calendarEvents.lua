@@ -41,7 +41,7 @@ local scroll_container = wibox.widget {
 local scroll_offset = 0
 local scroll_step = 40
 local visible_height_max = 300
-local popup_margin = 8 -- mismo que margins del popup
+local popup_margin = 8
 
 local function get_total_height()
     local height = 0
@@ -62,7 +62,6 @@ local function update_scroll_container_height()
     scroll_container.height = math.min(total_height, visible_height_max)
 end
 
--- Mouse wheel scroll solo si hace falta y con margen para el último evento
 scroll_container:buttons(gears.table.join(
     awful.button({}, 4, function()
         local total_height = get_total_height()
@@ -95,6 +94,28 @@ local calendar_popup = awful.popup {
     maximum_height = 300,
 }
 
+-- Función para mostrar días restantes
+local function format_day_with_diff(day_str)
+    local d, m, y = day_str:match("(%d%d)/(%d%d)/(%d%d%d%d)")
+    if not d then return day_str end
+    local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d)})
+    local now = os.time()
+    local diff_days = math.floor((event_time - now) / (24*60*60))
+    local suffix = ""
+    if diff_days == 0 then
+        suffix = " (today)"
+    elseif diff_days == 1 then
+        suffix = " (tomorrow)"
+    elseif diff_days > 1 then
+        suffix = " (in " .. diff_days .. " days)"
+    elseif diff_days == -1 then
+        suffix = " (yesterday)"
+    else
+        suffix = " (" .. math.abs(diff_days) .. " days ago)"
+    end
+    return day_str .. suffix
+end
+
 -- Update popup content
 local function update_calendar_popup()
     awful.spawn.easy_async_with_shell("LC_TIME=en_US.UTF-8 khal list today 30d", function(stdout)
@@ -126,7 +147,7 @@ local function update_calendar_popup()
                             opacity = 0.6
                         })
                     end
-                    local tb_day = wibox.widget.textbox(current_day)
+                    local tb_day = wibox.widget.textbox(format_day_with_diff(current_day))
                     tb_day.font = "Sans Bold 11"
                     event_list:add(tb_day)
                     for _, ev in ipairs(day_events) do
@@ -201,7 +222,7 @@ local function update_calendar_popup()
                     opacity = 0.6
                 })
             end
-            local tb_day = wibox.widget.textbox(current_day)
+            local tb_day = wibox.widget.textbox(format_day_with_diff(current_day))
             tb_day.font = "Sans Bold 11"
             event_list:add(tb_day)
             for _, ev in ipairs(day_events) do
@@ -211,7 +232,6 @@ local function update_calendar_popup()
             end
         end
 
-        -- Ajustar altura dinámica
         update_scroll_container_height()
     end)
 end

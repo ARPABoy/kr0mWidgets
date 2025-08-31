@@ -40,9 +40,9 @@ Critical battery threshhold:
 ![critical-battery](images/critical-battery.png)
 
 Calendar events display an icon that when clicked will display next 30d pending events, if some event happens the current day, tomorrow, next 7 days, next 30 days, icon text will change:
-|                                            |                                              |                                                    |                                            |                                              |
-| :----------------------------------------: | :------------------------------------------: | :------------------------------------------------: | :----------------------------------------: | :------------------------------------------: |
-| ![calendar-none](images/calendar-none.png) | ![calendar-today](images/calendar-today.png) | ![calendar-tomorrow](images/calendar-tomorrow.png) | ![calendar-week](images/calendar-1.png)    | ![calendar-month](images/calendar-30.png)    |
+|                                            |                                              |                                        |                                           |
+| :----------------------------------------: | :------------------------------------------: | :------------------------------------: | :---------------------------------------: |
+| ![calendar-none](images/calendar-none.png) | ![calendar-today](images/calendar-today.png) | ![calendar-week](images/calendar-1.png)| ![calendar-month](images/calendar-30.png) |
 
 Event list is scrollable and if some event have a description it will appear each description line under the event name, furthermore if a link is detected, it will be clickable.
 ![calendar-list](images/calendar-list.png)

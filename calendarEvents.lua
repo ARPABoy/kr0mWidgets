@@ -5,22 +5,40 @@ local awful = require("awful")
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
-local function has_events(range)
-    local handle = io.popen("khal list " .. range .. " 2>/dev/null")
+local function get_next_event_diff()
+    local handle = io.popen("LC_TIME=en_US.UTF-8 khal list today 30d 2>/dev/null")
+    if not handle then return nil end
     local output = handle:read("*a")
     handle:close()
-    return output ~= nil and output:match("%S") ~= nil and not output:match("No events")
+
+    if not output or output:match("^%s*$") or output:match("No events") then
+        return nil
+    end
+
+    -- Buscar la primera fecha en la salida (DD/MM/YYYY)
+    local first_date = output:match("(%d%d/%d%d/%d%d%d%d)")
+    if not first_date then return nil end
+
+    local d, m, y = first_date:match("(%d%d)/(%d%d)/(%d%d%d%d)")
+    if not d then return nil end
+
+    local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d), hour=0})
+    local now_date = os.date("*t")
+    local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0})
+
+    local diff_days = math.floor((event_time - today_time) / (24*60*60))
+    return diff_days
 end
 
 local function update_calendar_icon()
-    if has_events("today today") then
+    local diff_days = get_next_event_diff()
+
+    if not diff_days or diff_days > 30 then
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-none.png")
+    elseif diff_days == 0 then
         kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-today.png")
-    elseif has_events("tomorrow tomorrow") then
-        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-tomorrow.png")
-    elseif has_events("today 7d") then
-        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-week.png")
-    elseif has_events("today 30d") then
-        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-month.png")
+    elseif diff_days >= 1 and diff_days <= 30 then
+        kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-" .. diff_days .. ".png")
     else
         kr0mCalendarEventsIcon:set_image(icon_base_path .. "calendar-none.png")
     end
@@ -96,7 +114,6 @@ local calendar_popup = awful.popup {
 
 -- Función corregida para mostrar días restantes y día de la semana
 local function format_day_with_diff(day_str)
-    -- Extraemos solo la fecha DD/MM/YYYY
     local date_only = day_str:match("(%d%d/%d%d/%d%d%d%d)")
     if not date_only then return day_str end
 

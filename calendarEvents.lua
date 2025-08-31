@@ -182,7 +182,7 @@ local function update_calendar_popup()
                                     local line_widget = wibox.widget.textbox("    - " .. desc_line)
                                     local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
                                     if url then
-                                        line_widget.markup = "    - <u><span foreground='#00afff'>" .. desc_line .. "</span></u>"
+                                        line_widget.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
                                         line_widget:buttons(
                                             gears.table.join(
                                                 awful.button({}, 1, function()
@@ -203,7 +203,7 @@ local function update_calendar_popup()
                             local line_widget = wibox.widget.textbox("    - " .. desc_line)
                             local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
                             if url then
-                                line_widget.markup = "    - <u><span foreground='#00afff'>" .. desc_line .. "</span></u>"
+                                line_widget.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
                                 line_widget:buttons(
                                     gears.table.join(
                                         awful.button({}, 1, function()

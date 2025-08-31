@@ -17,7 +17,6 @@ local function get_next_event_diff()
         return nil
     end
 
-    -- Find the first date in the output (DD/MM/YYYY)
     local first_date = output:match("(%d%d/%d%d/%d%d%d%d)")
     if not first_date then return nil end
 
@@ -130,12 +129,10 @@ local function format_day_with_diff(day_str)
     local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0, min=0, sec=0})
 
     local diff_days = math.floor((event_time - today_time) / (24*60*60))
-
     local weekday_name = os.date("%A", event_time)
 
     local suffix = ""
     local color = "#ffffff"
-
     if diff_days == 0 then
         suffix = " (today)"
         color = "#00ff00"
@@ -167,6 +164,7 @@ local function update_calendar_popup()
         local day_events = {}
         local first_day = true
         local current_event = nil
+        local last_desc_event = nil
 
         for line in stdout:gmatch("[^\r\n]+") do
             if line:match("^%s*$") then goto continue end
@@ -175,12 +173,7 @@ local function update_calendar_popup()
             if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
                 if current_day then
                     if not first_day then
-                        event_list:add(wibox.widget {
-                            widget = wibox.widget.separator,
-                            forced_height = 1,
-                            color = "#888888",
-                            opacity = 0.6
-                        })
+                        event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
                     end
                     local tb_day = wibox.widget.textbox()
                     tb_day.font = "Sans Bold 11"
@@ -196,53 +189,45 @@ local function update_calendar_popup()
                 end
                 current_day = line
                 current_event = nil
+                last_desc_event = nil
             else
-                -- Event description
                 local cleaned_line = line:match("^%s*(.+)$")
-                if cleaned_line and cleaned_line ~= "" then
-                    if cleaned_line:match("%d%d:%d%d") or cleaned_line:match("⏰") or cleaned_line:match("⟳") then
+                if cleaned_line then
+                    local title, desc = cleaned_line:match("^(.-)::%s*(.*)$")
+                    if title then
+                        -- New event with description
                         current_event = {}
-                        local title, desc = cleaned_line:match("^(.-)::%s*(.*)$")
-                        if title then
-                            table.insert(current_event, wibox.widget.textbox(title .. (desc and desc ~= "" and ":" or "")))
-                            if desc and desc ~= "" then
-                                for desc_line in desc:gmatch("[^\r\n]+") do
-                                    local line_widget = wibox.widget.textbox("    - " .. desc_line)
-                                    local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
-                                    if url then
-                                        line_widget.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
-                                        line_widget:buttons(
-                                            gears.table.join(
-                                                awful.button({}, 1, function()
-                                                    awful.spawn("xdg-open '" .. url .. "'")
-                                                end)
-                                            )
-                                        )
-                                    end
-                                    table.insert(current_event, line_widget)
+                        table.insert(current_event, wibox.widget.textbox(title .. (desc and desc ~= "" and ":" or "")))
+                        if desc and desc ~= "" then
+                            for desc_line in desc:gmatch("[^\r\n]+") do
+                                local w = wibox.widget.textbox("    - " .. desc_line)
+                                local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
+                                if url then
+                                    w.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
+                                    w:buttons(gears.table.join(
+                                        awful.button({}, 1, function() awful.spawn("xdg-open '" .. url .. "'") end)
+                                    ))
                                 end
+                                table.insert(current_event, w)
                             end
-                        else
-                            table.insert(current_event, wibox.widget.textbox(cleaned_line))
                         end
                         table.insert(day_events, current_event)
-                    elseif current_event then
+                        last_desc_event = current_event
+                    elseif last_desc_event then
+                        -- Continuation of previous description
                         for desc_line in cleaned_line:gmatch("[^\r\n]+") do
-                            local line_widget = wibox.widget.textbox("    - " .. desc_line)
+                            local w = wibox.widget.textbox("    - " .. desc_line)
                             local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
                             if url then
-                                line_widget.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
-                                line_widget:buttons(
-                                    gears.table.join(
-                                        awful.button({}, 1, function()
-                                            awful.spawn("xdg-open '" .. url .. "'")
-                                        end)
-                                    )
-                                )
+                                w.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
+                                w:buttons(gears.table.join(
+                                    awful.button({}, 1, function() awful.spawn("xdg-open '" .. url .. "'") end)
+                                ))
                             end
-                            table.insert(current_event, line_widget)
+                            table.insert(last_desc_event, w)
                         end
                     else
+                        -- Single line event without description
                         table.insert(day_events, { wibox.widget.textbox(cleaned_line) })
                     end
                 end
@@ -250,15 +235,10 @@ local function update_calendar_popup()
             ::continue::
         end
 
-        -- Add the last day's events
+        -- Add last day's events
         if current_day then
             if not first_day then
-                event_list:add(wibox.widget {
-                    widget = wibox.widget.separator,
-                    forced_height = 1,
-                    color = "#888888",
-                    opacity = 0.6
-                })
+                event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
             end
             local tb_day = wibox.widget.textbox()
             tb_day.font = "Sans Bold 11"

@@ -2,9 +2,11 @@ local wibox = require("wibox")
 local gears = require("gears")
 local awful = require("awful")
 
+-- Base path for calendar icons
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
+-- Get the difference in days until the next event
 local function get_next_event_diff()
     local handle = io.popen("LC_TIME=en_US.UTF-8 khal list today 30d 2>/dev/null")
     if not handle then return nil end
@@ -15,7 +17,7 @@ local function get_next_event_diff()
         return nil
     end
 
-    -- Buscar la primera fecha en la salida (DD/MM/YYYY)
+    -- Find the first date in the output (DD/MM/YYYY)
     local first_date = output:match("(%d%d/%d%d/%d%d%d%d)")
     if not first_date then return nil end
 
@@ -30,6 +32,7 @@ local function get_next_event_diff()
     return diff_days
 end
 
+-- Update the icon depending on how many days remain for the next event
 local function update_calendar_icon()
     local diff_days = get_next_event_diff()
 
@@ -44,7 +47,7 @@ local function update_calendar_icon()
     end
 end
 
--- Event list
+-- Event list container
 local event_list = wibox.layout.fixed.vertical()
 
 -- Scroll wrapper
@@ -56,11 +59,13 @@ local scroll_container = wibox.widget {
     widget = wibox.container.background,
 }
 
+-- Scroll configuration
 local scroll_offset = 0
 local scroll_step = 40
 local visible_height_max = 300
 local popup_margin = 8
 
+-- Calculate total height of the event list
 local function get_total_height()
     local height = 0
     for _, widget in ipairs(event_list.children) do
@@ -75,11 +80,13 @@ local function get_total_height()
     return height
 end
 
+-- Update scroll container height
 local function update_scroll_container_height()
     local total_height = get_total_height()
     scroll_container.height = math.min(total_height, visible_height_max)
 end
 
+-- Mouse scroll bindings
 scroll_container:buttons(gears.table.join(
     awful.button({}, 4, function()
         local total_height = get_total_height()
@@ -96,7 +103,7 @@ scroll_container:buttons(gears.table.join(
     end)
 ))
 
--- Popup
+-- Popup window
 local calendar_popup = awful.popup {
     widget = {
         scroll_container,
@@ -112,7 +119,7 @@ local calendar_popup = awful.popup {
     maximum_height = 300,
 }
 
--- Función corregida para mostrar días restantes y día de la semana
+-- Format event day with remaining days and weekday
 local function format_day_with_diff(day_str)
     local date_only = day_str:match("(%d%d/%d%d/%d%d%d%d)")
     if not date_only then return day_str end
@@ -143,7 +150,7 @@ local function format_day_with_diff(day_str)
     return "<span foreground='" .. color .. "'>" .. weekday_name .. " " .. date_only .. suffix .. "</span>"
 end
 
--- Update popup content
+-- Update popup content with events
 local function update_calendar_popup()
     awful.spawn.easy_async_with_shell("LC_TIME=en_US.UTF-8 khal list today 30d", function(stdout)
         event_list:reset()
@@ -164,6 +171,7 @@ local function update_calendar_popup()
         for line in stdout:gmatch("[^\r\n]+") do
             if line:match("^%s*$") then goto continue end
 
+            -- New day header
             if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
                 if current_day then
                     if not first_day then
@@ -189,6 +197,7 @@ local function update_calendar_popup()
                 current_day = line
                 current_event = nil
             else
+                -- Event description
                 local cleaned_line = line:match("^%s*(.+)$")
                 if cleaned_line and cleaned_line ~= "" then
                     if cleaned_line:match("%d%d:%d%d") or cleaned_line:match("⏰") or cleaned_line:match("⟳") then
@@ -241,6 +250,7 @@ local function update_calendar_popup()
             ::continue::
         end
 
+        -- Add the last day's events
         if current_day then
             if not first_day then
                 event_list:add(wibox.widget {
@@ -265,6 +275,7 @@ local function update_calendar_popup()
     end)
 end
 
+-- Toggle popup visibility
 local first_popup_show = true
 local function toggle_calendar_popup()
     if calendar_popup.visible then
@@ -283,12 +294,14 @@ local function toggle_calendar_popup()
     end
 end
 
+-- Bind left-click on icon to toggle popup
 kr0mCalendarEventsIcon:buttons(
     gears.table.join(
         awful.button({}, 1, toggle_calendar_popup)
     )
 )
 
+-- Timer to refresh icon every minute
 local calendar_timer = gears.timer({ timeout = 60 })
 calendar_timer:connect_signal("timeout", update_calendar_icon)
 calendar_timer:start()

@@ -94,26 +94,34 @@ local calendar_popup = awful.popup {
     maximum_height = 300,
 }
 
--- Función para mostrar días restantes
+-- Función simplificada y corregida para mostrar días restantes
 local function format_day_with_diff(day_str)
     local d, m, y = day_str:match("(%d%d)/(%d%d)/(%d%d%d%d)")
     if not d then return day_str end
-    local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d)})
-    local now = os.time()
-    local diff_days = math.floor((event_time - now) / (24*60*60))
+
+    -- Fecha del evento a medianoche
+    local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d), hour=0, min=0, sec=0})
+    -- Fecha actual a medianoche
+    local now_date = os.date("*t")
+    local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0, min=0, sec=0})
+
+    local diff_days = math.floor((event_time - today_time) / (24*60*60))
+
     local suffix = ""
+    local color = "#ffffff"
+
     if diff_days == 0 then
         suffix = " (today)"
+        color = "#00ff00"
     elseif diff_days == 1 then
         suffix = " (tomorrow)"
+        color = "#00afff"
     elseif diff_days > 1 then
         suffix = " (in " .. diff_days .. " days)"
-    elseif diff_days == -1 then
-        suffix = " (yesterday)"
-    else
-        suffix = " (" .. math.abs(diff_days) .. " days ago)"
+        color = "#ffaa00"
     end
-    return day_str .. suffix
+
+    return "<span foreground='" .. color .. "'>" .. day_str .. suffix .. "</span>"
 end
 
 -- Update popup content
@@ -147,8 +155,9 @@ local function update_calendar_popup()
                             opacity = 0.6
                         })
                     end
-                    local tb_day = wibox.widget.textbox(format_day_with_diff(current_day))
+                    local tb_day = wibox.widget.textbox()
                     tb_day.font = "Sans Bold 11"
+                    tb_day.markup = format_day_with_diff(current_day)
                     event_list:add(tb_day)
                     for _, ev in ipairs(day_events) do
                         for _, w in ipairs(ev) do
@@ -222,8 +231,9 @@ local function update_calendar_popup()
                     opacity = 0.6
                 })
             end
-            local tb_day = wibox.widget.textbox(format_day_with_diff(current_day))
+            local tb_day = wibox.widget.textbox()
             tb_day.font = "Sans Bold 11"
+            tb_day.markup = format_day_with_diff(current_day)
             event_list:add(tb_day)
             for _, ev in ipairs(day_events) do
                 for _, w in ipairs(ev) do

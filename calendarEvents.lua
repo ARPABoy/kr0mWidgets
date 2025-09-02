@@ -6,7 +6,55 @@ local awful = require("awful")
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/calendarEvents/"
 kr0mCalendarEventsIcon = wibox.widget.imagebox(icon_base_path .. "calendar-none.png")
 
--- Get the difference in days until the next event
+-- Debug logging configuration
+local log_file = os.getenv("HOME") .. "/.cache/awesome/calendar_debug.log"
+local log_enabled = false
+
+-- Write debug messages to a file
+local function debug_log(message)
+    if not log_enabled then return end
+    os.execute("mkdir -p " .. os.getenv("HOME") .. "/.cache/awesome/")
+    local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+    local log_message = "[" .. timestamp .. "] " .. message .. "\n"
+    local file = io.open(log_file, "a")
+    if file then
+        file:write(log_message)
+        file:close()
+    end
+end
+
+-- Escape special characters for Pango markup
+local function escape_markup(text)
+    return text
+        :gsub("&", "&amp;")
+        :gsub("<", "&lt;")
+        :gsub(">", "&gt;")
+        :gsub("\"", "&quot;")
+        :gsub("'", "&apos;")
+end
+
+-- Create a clickable line (with URL)
+local function make_clickable_line(desc_line, url)
+    local safe_line = escape_markup(desc_line)
+    local w = wibox.widget.textbox()
+    w.markup = "    - <u><span foreground='#55ff55'>" .. safe_line .. "</span></u>"
+    w:buttons(gears.table.join(
+        awful.button({}, 1, function()
+            debug_log("Opening URL: " .. url)
+            awful.spawn("xdg-open '" .. url .. "'")
+        end)
+    ))
+    return w
+end
+
+-- Create a normal non-clickable line
+local function make_normal_line(desc_line)
+    return wibox.widget.textbox("    - " .. escape_markup(desc_line))
+end
+
+debug_log("=== CALENDAR WIDGET STARTED ===")
+
+-- Get the number of days until the next event
 local function get_next_event_diff()
     local handle = io.popen("LC_TIME=en_US.UTF-8 khal list today 30d 2>/dev/null")
     if not handle then return nil end
@@ -31,7 +79,7 @@ local function get_next_event_diff()
     return diff_days
 end
 
--- Update the icon depending on how many days remain for the next event
+-- Update the icon based on the closest event
 local function update_calendar_icon()
     local diff_days = get_next_event_diff()
 
@@ -46,7 +94,7 @@ local function update_calendar_icon()
     end
 end
 
--- Event list container
+-- List of events
 local event_list = wibox.layout.fixed.vertical()
 
 -- Scroll wrapper
@@ -58,13 +106,13 @@ local scroll_container = wibox.widget {
     widget = wibox.container.background,
 }
 
--- Scroll configuration
+-- Scroll config
 local scroll_offset = 0
 local scroll_step = 40
 local visible_height_max = 300
 local popup_margin = 8
 
--- Calculate total height of the event list
+-- Calculate total height of the list
 local function get_total_height()
     local height = 0
     for _, widget in ipairs(event_list.children) do
@@ -79,13 +127,13 @@ local function get_total_height()
     return height
 end
 
--- Update scroll container height
+-- Adjust scroll container height
 local function update_scroll_container_height()
     local total_height = get_total_height()
     scroll_container.height = math.min(total_height, visible_height_max)
 end
 
--- Mouse scroll bindings
+-- Mouse scroll support
 scroll_container:buttons(gears.table.join(
     awful.button({}, 4, function()
         local total_height = get_total_height()
@@ -118,7 +166,7 @@ local calendar_popup = awful.popup {
     maximum_height = 300,
 }
 
--- Format event day with remaining days and weekday
+-- Format day header with weekday and remaining days
 local function format_day_with_diff(day_str)
     local date_only = day_str:match("(%d%d/%d%d/%d%d%d%d)")
     if not date_only then return day_str end
@@ -147,14 +195,47 @@ local function format_day_with_diff(day_str)
     return "<span foreground='" .. color .. "'>" .. weekday_name .. " " .. date_only .. suffix .. "</span>"
 end
 
+-- Extract URLs from text
+local function extract_urls(text)
+    local urls = {}
+    debug_log("Extracting URLs from text: " .. text:sub(1, 100) .. "...")
+    for url in text:gmatch("(https?://%S+)") do
+        local clean_url = url:gsub("[%,%.%)%]%}%>%\"%'%s]+$", "")
+        if clean_url ~= "" then
+            table.insert(urls, clean_url)
+            debug_log("Found URL: " .. clean_url)
+        end
+    end
+    debug_log("Total URLs extracted: " .. #urls)
+    return urls
+end
+
+-- Check if a line contains a URL
+local function line_contains_url(line, urls)
+    for _, url in ipairs(urls) do
+        local escaped_url = url:gsub("[%-%.%+%*%?%^%$%(%)%[%]%%]", "%%%0")
+        if line:find(escaped_url, 1, false) then
+            debug_log("Line contains URL: " .. url)
+            return url
+        end
+    end
+    return nil
+end
+
 -- Update popup content with events
 local function update_calendar_popup()
+    debug_log("Updating calendar popup...")
+
     awful.spawn.easy_async_with_shell("LC_TIME=en_US.UTF-8 khal list today 30d", function(stdout)
         event_list:reset()
         scroll_offset = 0
         scroll_margin.top = 0
 
+        debug_log("Khal output length: " .. #stdout)
+        debug_log("Khal output preview: " .. stdout:sub(1, 200):gsub("\n", "\\n") .. "...")
+
         if stdout == "" or stdout:match("^%s*$") then
+            debug_log("No events found")
             event_list:add(wibox.widget.textbox("No upcoming events."))
             update_scroll_container_height()
             return
@@ -169,8 +250,11 @@ local function update_calendar_popup()
         for line in stdout:gmatch("[^\r\n]+") do
             if line:match("^%s*$") then goto continue end
 
-            -- New day header
+            debug_log("Processing line: " .. line)
+
             if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
+                -- Day header
+                debug_log("Found day header: " .. line)
                 if current_day then
                     if not first_day then
                         event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
@@ -193,49 +277,71 @@ local function update_calendar_popup()
             else
                 local cleaned_line = line:match("^%s*(.+)$")
                 if cleaned_line then
+                    debug_log("Cleaned line: " .. cleaned_line)
+
                     local title, desc = cleaned_line:match("^(.-)::%s*(.*)$")
                     if title then
-                        -- New event with description
+                        -- New event
+                        debug_log("Title found: " .. title)
+                        if desc then debug_log("Description found: " .. desc) end
+
                         current_event = {}
-                        table.insert(current_event, wibox.widget.textbox(title .. (desc and desc ~= "" and ":" or "")))
+                        table.insert(current_event, wibox.widget.textbox(escape_markup(title .. (desc and desc ~= "" and ":" or ""))))
                         if desc and desc ~= "" then
+                            local urls = extract_urls(desc)
+                            debug_log("Processing description lines...")
+                            local desc_lines = {}
                             for desc_line in desc:gmatch("[^\r\n]+") do
-                                local w = wibox.widget.textbox("    - " .. desc_line)
-                                local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
-                                if url then
-                                    w.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
-                                    w:buttons(gears.table.join(
-                                        awful.button({}, 1, function() awful.spawn("xdg-open '" .. url .. "'") end)
-                                    ))
+                                table.insert(desc_lines, desc_line)
+                                debug_log("Desc line: " .. desc_line)
+                            end
+
+                            if #urls > 0 then
+                                debug_log("URLs found, processing each line...")
+                                for _, desc_line in ipairs(desc_lines) do
+                                    local matched_url = line_contains_url(desc_line, urls)
+                                    if matched_url then
+                                        table.insert(current_event, make_clickable_line(desc_line, matched_url))
+                                    else
+                                        table.insert(current_event, make_normal_line(desc_line))
+                                    end
                                 end
-                                table.insert(current_event, w)
+                            else
+                                debug_log("No URLs found, creating normal widgets")
+                                for desc_line in desc:gmatch("[^\r\n]+") do
+                                    table.insert(current_event, make_normal_line(desc_line))
+                                end
                             end
                         end
                         table.insert(day_events, current_event)
                         last_desc_event = current_event
                     elseif last_desc_event then
-                        -- Continuation of previous description
+                        -- Continuation of description
+                        debug_log("Continuation of previous description: " .. cleaned_line)
                         for desc_line in cleaned_line:gmatch("[^\r\n]+") do
-                            local w = wibox.widget.textbox("    - " .. desc_line)
-                            local url = desc_line:match("(https?://[%w-_%.%?%.:/%+=&]+)")
-                            if url then
-                                w.markup = "    - <u><span foreground='#55ff55'>" .. desc_line .. "</span></u>"
-                                w:buttons(gears.table.join(
-                                    awful.button({}, 1, function() awful.spawn("xdg-open '" .. url .. "'") end)
-                                ))
+                            local urls = extract_urls(desc_line)
+                            if #urls > 0 then
+                                for _, url in ipairs(urls) do
+                                    local escaped_url = url:gsub("[%-%.%+%*%?%^%$%(%)%[%]%%]", "%%%0")
+                                    if desc_line:find(escaped_url, 1, false) then
+                                        table.insert(last_desc_event, make_clickable_line(desc_line, url))
+                                        break
+                                    end
+                                end
+                            else
+                                table.insert(last_desc_event, make_normal_line(desc_line))
                             end
-                            table.insert(last_desc_event, w)
                         end
                     else
-                        -- Single line event without description
-                        table.insert(day_events, { wibox.widget.textbox(cleaned_line) })
+                        -- Standalone line (no title)
+                        debug_log("Single line event: " .. cleaned_line)
+                        table.insert(day_events, { wibox.widget.textbox(escape_markup(cleaned_line)) })
                     end
                 end
             end
             ::continue::
         end
 
-        -- Add last day's events
         if current_day then
             if not first_day then
                 event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
@@ -251,6 +357,7 @@ local function update_calendar_popup()
             end
         end
 
+        debug_log("Popup update completed")
         update_scroll_container_height()
     end)
 end
@@ -260,7 +367,9 @@ local first_popup_show = true
 local function toggle_calendar_popup()
     if calendar_popup.visible then
         calendar_popup.visible = false
+        debug_log("Popup hidden")
     else
+        debug_log("Showing popup")
         update_calendar_popup()
         gears.timer.delayed_call(function()
             if first_popup_show then
@@ -270,6 +379,7 @@ local function toggle_calendar_popup()
                 awful.placement.top_right(calendar_popup, { parent = mouse.screen, margins = { top = 40, right = 8 } })
             end
             calendar_popup.visible = true
+            debug_log("Popup visible")
         end)
     end
 end
@@ -281,9 +391,16 @@ kr0mCalendarEventsIcon:buttons(
     )
 )
 
--- Timer to refresh icon every minute
+-- Refresh icon every 60 seconds
 local calendar_timer = gears.timer({ timeout = 60 })
-calendar_timer:connect_signal("timeout", update_calendar_icon)
+calendar_timer:connect_signal("timeout", function()
+    debug_log("Updating calendar icon")
+    update_calendar_icon()
+end)
 calendar_timer:start()
 update_calendar_icon()
+
+debug_log("Calendar widget initialization completed")
+
+return kr0mCalendarEventsIcon
 

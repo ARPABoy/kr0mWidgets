@@ -11,7 +11,7 @@ kr0mCpuTempIcon = wibox.widget.imagebox()
 -- Base path of your images
 local icon_base_path = os.getenv("HOME") .. "/.config/awesome/kr0mWidgets/media_files/cpuTemp/"
 
--- Function to get CPU temperature
+-- Function to get CPU temperature (principal)
 local function get_cpu_temp()
     local handle = io.popen("sensors | grep 'Package id 0:' | awk '{print $4}' | tr -d '+°C'")
     local temp = handle:read("*a")
@@ -19,6 +19,14 @@ local function get_cpu_temp()
 
     temp = tonumber(temp) or 0
     return temp
+end
+
+-- Function to get full sensors info
+local function get_all_sensors()
+    local handle = io.popen("sensors")
+    local out = handle:read("*a") or ""
+    handle:close()
+    return out
 end
 
 -- Icons
@@ -77,4 +85,27 @@ cpu_temp_timer:start()
 
 -- Initial call
 update_cpu_temp_widget()
+
+-- Tooltip con la info completa de sensors
+local sensors_tooltip = awful.tooltip {
+    objects = { kr0mCpuTempIcon }, -- el tooltip se engancha al icono
+    mode = "outside",
+    preferred_positions = { "right", "left", "top", "bottom" },
+    delay_show = 0,
+    timer_function = function()
+        return get_all_sensors()
+    end,
+}
+
+-- Si quieres que solo aparezca al hacer click (no al pasar el ratón):
+kr0mCpuTempIcon:buttons(gears.table.join(
+    awful.button({}, 1, function()
+        if sensors_tooltip.visible then
+            sensors_tooltip.visible = false
+        else
+            sensors_tooltip.text = get_all_sensors()
+            sensors_tooltip.visible = true
+        end
+    end)
+))
 

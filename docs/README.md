@@ -21,8 +21,8 @@ Cpu temp widget will change the icon color and thermometer bar depending on temp
 |:-----------------------:|:--------------------------:|:----------------------:|:---------------------------:|
 |![Cold](images/blue.png) | ![Warm](images/orange.png) | ![Hot](images/red.png) | ![Fire](images/burning.png) |
 
-You can see a running example here:
-![cpu-temp](images/cpuTemp.png)
+When mouse hovers icon, sensors command output is shown:
+![cpu-temp-info](images/cpuTempInfo.png)
 
 Battery widget is a little special, as information is coded in the icon color schema:
 - Battery indicator green: Power-saver profile applied.

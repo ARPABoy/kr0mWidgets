@@ -54,7 +54,7 @@ end
 
 debug_log("=== CALENDAR WIDGET STARTED ===")
 
--- Get the number of days until the next event
+-- Get the number of days until the next non-Guard event
 local function get_next_event_diff()
     local handle = io.popen("LC_TIME=en_US.UTF-8 khal list today 30d 2>/dev/null")
     if not handle then return nil end
@@ -65,21 +65,39 @@ local function get_next_event_diff()
         return nil
     end
 
-    local first_date = output:match("(%d%d/%d%d/%d%d%d%d)")
-    if not first_date then return nil end
+    local current_day = nil
+    for line in output:gmatch("[^\r\n]+") do
+        if not line:match("^%s*$") then
+            -- Detect day header
+            if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
+                current_day = line
+            else
+                -- Check for event title
+                local cleaned_line = line:match("^%s*(.+)$")
+                if cleaned_line then
+                    local title = cleaned_line:match("^(.-)::")
+                    if not title then title = cleaned_line end
+                    if title ~= "Guard" then
+                        -- Found a non-Guard event
+                        local d, m, y = current_day:match("(%d%d)/(%d%d)/(%d%d%d%d)")
+                        if d then
+                            local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d), hour=0})
+                            local now_date = os.date("*t")
+                            local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0})
+                            local diff_days = math.floor((event_time - today_time) / (24*60*60))
+                            return diff_days
+                        end
+                    end
+                end
+            end
+        end
+    end
 
-    local d, m, y = first_date:match("(%d%d)/(%d%d)/(%d%d%d%d)")
-    if not d then return nil end
-
-    local event_time = os.time({year = tonumber(y), month = tonumber(m), day = tonumber(d), hour=0})
-    local now_date = os.date("*t")
-    local today_time = os.time({year=now_date.year, month=now_date.month, day=now_date.day, hour=0})
-
-    local diff_days = math.floor((event_time - today_time) / (24*60*60))
-    return diff_days
+    -- If all events are Guard or no valid events
+    return nil
 end
 
--- Update the icon based on the closest event
+-- Update the icon based on the closest non-Guard event
 local function update_calendar_icon()
     local diff_days = get_next_event_diff()
 
@@ -231,11 +249,7 @@ local function update_calendar_popup()
         scroll_offset = 0
         scroll_margin.top = 0
 
-        debug_log("Khal output length: " .. #stdout)
-        debug_log("Khal output preview: " .. stdout:sub(1, 200):gsub("\n", "\\n") .. "...")
-
         if stdout == "" or stdout:match("^%s*$") then
-            debug_log("No events found")
             event_list:add(wibox.widget.textbox("No upcoming events."))
             update_scroll_container_height()
             return
@@ -250,11 +264,8 @@ local function update_calendar_popup()
         for line in stdout:gmatch("[^\r\n]+") do
             if line:match("^%s*$") then goto continue end
 
-            debug_log("Processing line: " .. line)
-
             if not line:match("^%s") and line:match("%d%d/%d%d/%d%d%d%d") then
                 -- Day header
-                debug_log("Found day header: " .. line)
                 if current_day then
                     if not first_day then
                         event_list:add(wibox.widget { widget = wibox.widget.separator, forced_height = 1, color = "#888888", opacity = 0.6 })
@@ -277,27 +288,18 @@ local function update_calendar_popup()
             else
                 local cleaned_line = line:match("^%s*(.+)$")
                 if cleaned_line then
-                    debug_log("Cleaned line: " .. cleaned_line)
-
                     local title, desc = cleaned_line:match("^(.-)::%s*(.*)$")
                     if title then
-                        -- New event
-                        debug_log("Title found: " .. title)
-                        if desc then debug_log("Description found: " .. desc) end
-
                         current_event = {}
                         table.insert(current_event, wibox.widget.textbox(escape_markup(title .. (desc and desc ~= "" and ":" or ""))))
                         if desc and desc ~= "" then
                             local urls = extract_urls(desc)
-                            debug_log("Processing description lines...")
                             local desc_lines = {}
                             for desc_line in desc:gmatch("[^\r\n]+") do
                                 table.insert(desc_lines, desc_line)
-                                debug_log("Desc line: " .. desc_line)
                             end
 
                             if #urls > 0 then
-                                debug_log("URLs found, processing each line...")
                                 for _, desc_line in ipairs(desc_lines) do
                                     local matched_url = line_contains_url(desc_line, urls)
                                     if matched_url then
@@ -307,7 +309,6 @@ local function update_calendar_popup()
                                     end
                                 end
                             else
-                                debug_log("No URLs found, creating normal widgets")
                                 for desc_line in desc:gmatch("[^\r\n]+") do
                                     table.insert(current_event, make_normal_line(desc_line))
                                 end
@@ -316,8 +317,6 @@ local function update_calendar_popup()
                         table.insert(day_events, current_event)
                         last_desc_event = current_event
                     elseif last_desc_event then
-                        -- Continuation of description
-                        debug_log("Continuation of previous description: " .. cleaned_line)
                         for desc_line in cleaned_line:gmatch("[^\r\n]+") do
                             local urls = extract_urls(desc_line)
                             if #urls > 0 then
@@ -333,8 +332,6 @@ local function update_calendar_popup()
                             end
                         end
                     else
-                        -- Standalone line (no title)
-                        debug_log("Single line event: " .. cleaned_line)
                         table.insert(day_events, { wibox.widget.textbox(escape_markup(cleaned_line)) })
                     end
                 end
@@ -357,7 +354,6 @@ local function update_calendar_popup()
             end
         end
 
-        debug_log("Popup update completed")
         update_scroll_container_height()
     end)
 end
@@ -367,9 +363,7 @@ local first_popup_show = true
 local function toggle_calendar_popup()
     if calendar_popup.visible then
         calendar_popup.visible = false
-        debug_log("Popup hidden")
     else
-        debug_log("Showing popup")
         update_calendar_popup()
         gears.timer.delayed_call(function()
             if first_popup_show then
@@ -379,7 +373,6 @@ local function toggle_calendar_popup()
                 awful.placement.top_right(calendar_popup, { parent = mouse.screen, margins = { top = 40, right = 8 } })
             end
             calendar_popup.visible = true
-            debug_log("Popup visible")
         end)
     end
 end
@@ -391,16 +384,13 @@ kr0mCalendarEventsIcon:buttons(
     )
 )
 
--- Refresh icon every 60 seconds
-local calendar_timer = gears.timer({ timeout = 60 })
+-- Refresh icon every 30 seconds
+local calendar_timer = gears.timer({ timeout = 30 })
 calendar_timer:connect_signal("timeout", function()
-    debug_log("Updating calendar icon")
     update_calendar_icon()
 end)
 calendar_timer:start()
 update_calendar_icon()
-
-debug_log("Calendar widget initialization completed")
 
 return kr0mCalendarEventsIcon
 

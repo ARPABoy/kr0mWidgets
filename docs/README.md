@@ -47,6 +47,7 @@ Calendar events display an icon that when clicked will display next 30d pending 
 Event list is scrollable and if some event have a description it will appear each description line under the event name, furthermore if a link is detected, it will be clickable.
 ![calendar-list](images/calendar-list.png)
 
+***NOTE:*** `Guard` event name is reserved for my personal use related to a custom external service integration. Please avoid its use as `icon change` ignores events with that name.
 
 ### Installation:
 

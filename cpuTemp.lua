@@ -16,7 +16,6 @@ local function get_cpu_temp()
     local handle = io.popen("sensors | grep 'Package id 0:' | awk '{print $4}' | tr -d '+°C'")
     local temp = handle:read("*a")
     handle:close()
-
     temp = tonumber(temp) or 0
     return temp
 end
@@ -86,25 +85,49 @@ cpu_temp_timer:start()
 -- Initial call
 update_cpu_temp_widget()
 
--- Tooltip con la info completa de sensors
-local sensors_tooltip = awful.tooltip {
-    objects = { kr0mCpuTempIcon }, -- el tooltip se engancha al icono
-    mode = "outside",
+-- Sensors Popup
+local sensors_popup = awful.popup {
+    widget = {
+        {
+            id     = "text_role",
+            widget = wibox.widget.textbox,
+            text   = "",
+        },
+        margins = 8,
+        widget  = wibox.container.margin
+    },
+    border_color = "#666666",
+    border_width = 1,
+    ontop        = true,
+    visible      = false,
+    shape        = gears.shape.rounded_rect,
     preferred_positions = { "right", "left", "top", "bottom" },
-    delay_show = 0,
-    timer_function = function()
-        return get_all_sensors()
-    end,
 }
 
--- Si quieres que solo aparezca al hacer click (no al pasar el ratón):
+-- Timer sensors popup
+local sensors_popup_timer = gears.timer({
+    timeout   = 5,
+    autostart = false,
+    call_now  = true,
+    single_shot = false,
+    callback = function()
+        if sensors_popup.visible then
+            sensors_popup.widget:get_children_by_id("text_role")[1].text = get_all_sensors()
+        end
+    end
+})
+
+-- Sensors popup toggle
 kr0mCpuTempIcon:buttons(gears.table.join(
     awful.button({}, 1, function()
-        if sensors_tooltip.visible then
-            sensors_tooltip.visible = false
+        if sensors_popup.visible then
+            sensors_popup.visible = false
+            sensors_popup_timer:stop()
         else
-            sensors_tooltip.text = get_all_sensors()
-            sensors_tooltip.visible = true
+            sensors_popup.widget:get_children_by_id("text_role")[1].text = get_all_sensors()
+            sensors_popup:move_next_to(mouse.current_widget_geometry)
+            sensors_popup.visible = true
+            sensors_popup_timer:start()
         end
     end)
 ))
